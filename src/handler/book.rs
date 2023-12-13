@@ -1,9 +1,14 @@
-use actix_web::{web, HttpResponse};
+use std::sync::Arc;
 
-// basic handler that responds with a static string
-pub async fn root() -> &'static str {
-    "Hello, World!"
+use axum::{extract::State, routing::get, Router};
+
+use crate::state::AppState;
+
+pub fn router() -> Router<Arc<AppState>> {
+    // <Arc<AppState>>
+    Router::new().route("/", get(root))
 }
 
-// this function could be located in different module
-pub fn config(cfg: &mut web::ServiceConfig) {}
+async fn root(State(app_state): State<Arc<AppState>>) -> &'static str {
+    "Hello, World!"
+}

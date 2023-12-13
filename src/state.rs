@@ -1,15 +1,14 @@
-use std::sync::Mutex;
-
 use redis::Client;
 
-pub struct AppStateData {
+#[derive(Clone)]
+pub struct AppState {
     pub redis_client: Client,
-    pub counter: Mutex<usize>,
+    pub counter: usize,
 }
 
-pub fn new() -> AppStateData {
-    AppStateData {
+pub fn new() -> AppState {
+    AppState {
         redis_client: redis::Client::open("redis://127.0.0.1/").unwrap(),
-        counter: Mutex::new(0),
+        counter: 0,
     }
 }

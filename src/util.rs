@@ -1,11 +1,4 @@
-use std::ops::DerefMut;
-
-use serde::{Deserialize, Serialize};
-
-use actix_web::{
-    web::{self},
-    Responder, Result,
-};
+use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct Data<T>

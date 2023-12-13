@@ -3,26 +3,34 @@ mod keys;
 mod state;
 mod util;
 
-use actix_files as fs;
-use actix_web::{middleware, web, App, HttpServer};
+use std::sync::Arc;
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    env_logger::init();
+use axum::Router;
 
-    log::info!("starting up");
+#[tokio::main]
+async fn main() {
+    init_logger();
 
-    let data = web::Data::new(state::new());
+    log::error!("server is staring up");
+    log::warn!("server is staring up");
+    log::debug!("server is staring up");
+    log::info!("server is staring up");
+    log::trace!("server is staring up");
 
-    HttpServer::new(move || {
-        App::new()
-            .wrap(middleware::Logger::default())
-            .app_data(data.clone())
-            .service(web::scope("/user").configure(handler::user::config))
-            .service(web::scope("/book").configure(handler::book::config))
-            .service(fs::Files::new("/static", ".").show_files_listing())
-    })
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+    let app_state = Arc::new(state::new());
+
+    let app: Router = Router::new()
+        .nest("/book", handler::book::router())
+        .nest("/user", handler::user::router())
+        .with_state(app_state);
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
+
+fn init_logger() {
+    std::env::set_var("RUST_LOG", "debug");
+
+    // env_logger::init();
+    tracing_subscriber::fmt::init();
 }

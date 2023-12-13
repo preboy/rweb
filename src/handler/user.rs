@@ -1,17 +1,19 @@
 use std::collections::HashMap;
-
-use actix_web::{
-    web::{self},
-    HttpRequest, HttpResponse, Responder, 
-};
+use std::sync::Arc;
 
 use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
-use crate::keys;
-use crate::state;
+use axum::{
+    extract::{Json, Query, State},
+    response::IntoResponse,
+    routing::get,
+    Router,
+};
+
 use crate::util;
+use crate::{keys, state::AppState};
 
 #[derive(Serialize, Default)]
 pub struct User {
@@ -20,21 +22,12 @@ pub struct User {
     age: i32,
 }
 
-// this function could be located in different module
-pub fn config(scfg: &mut web::ServiceConfig) {
-    scfg.route("/getAll", web::get().to(get_all))
-        .route("/getOne", web::get().to(get_one))
-        .route("/add", web::get().to(add))
-        .route("/del", web::get().to(del));
-}
-
-pub async fn get_all(data: web::Data<state::AppStateData>) -> &'static str {
-    let conn = &mut data.redis_client.get_async_connection().await.unwrap();
-    let v: HashMap<String, String> = conn.hgetall(keys::users()).await.unwrap();
-
-    println!("zzz = {:?}", v);
-
-    "get_all"
+pub fn router() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/getAll", get(get_all))
+        .route("/getOne", get(get_one))
+        .route("/add", get(add))
+        .route("/del", get(del))
 }
 
 #[derive(Deserialize)]
@@ -48,27 +41,34 @@ pub struct AddOneReq {
     age: i32,
 }
 
-pub async fn get_one(
-    data: web::Data<state::AppStateData>,
-    args: web::Query<GetOneReq>,
-) -> impl Responder {
-    let conn = &mut data.redis_client.get_async_connection().await.unwrap();
+async fn get_all(State(app_state): State<Arc<AppState>>) -> &'static str {
+    let conn = &mut app_state.redis_client.get_async_connection().await.unwrap();
+    let v: HashMap<String, String> = conn.hgetall(keys::users()).await.unwrap();
+
+    println!("zzz = {:?}", v);
+
+    "get_all"
+}
+
+async fn get_one(
+    State(app_state): State<Arc<AppState>>,
+    args: Query<GetOneReq>,
+) -> impl IntoResponse {
+    let conn = &mut app_state.redis_client.get_async_connection().await.unwrap();
 
     let key = keys::users();
     let fld = keys::user(args.uid);
 
-    let val: String = conn.hget(key, fld).await.unwrap();
+    let _val: String = conn.hget(key, fld).await.unwrap();
 
+    log::info!("haha{}", _val);
     let data = util::Data::<User>::new();
 
-    HttpResponse::Ok().body(val)
+    Json(data)
 }
 
-pub async fn add(
-    data: web::Data<state::AppStateData>,
-    args: web::Query<AddOneReq>,
-) -> impl Responder {
-    let conn = &mut data.redis_client.get_async_connection().await.unwrap();
+async fn add(State(app_state): State<Arc<AppState>>, args: Query<AddOneReq>) -> impl IntoResponse {
+    let conn = &mut app_state.redis_client.get_async_connection().await.unwrap();
 
     let uid = 101_i32;
 
@@ -91,21 +91,25 @@ pub async fn add(
     let data = util::Data::<User>::new();
 
     if n > 0 {
-        return web::Json(data.err(1, String::from("haha")));
+        return Json(data.err(1, String::from("haha")));
     };
 
-    web::Json(data.ok(user))
+    Json(data.ok(user))
 }
 
-pub async fn del(data: web::Data<state::AppStateData>) -> impl Responder {
-    let conn = &mut data.redis_client.get_async_connection().await.unwrap();
+async fn del(State(app_state): State<Arc<AppState>>) -> impl IntoResponse {
+    let conn = &mut app_state.redis_client.get_async_connection().await.unwrap();
     let r: i32 = conn.hdel(keys::users(), 1).await.unwrap();
 
     let data = util::Data::<i32>::new();
 
+    log::debug!("fuckyou   1");
+
     if r == 1 {
-        return web::Json(data.ok(r));
+        return Json(data.ok(r));
     }
 
-    return web::Json(data.err(10, format!("fuck-{}", r)));
+    log::debug!("fuckyou   2");
+
+    Json(data.err(10, format!("fuck-{}", r)))
 }
