@@ -11,13 +11,9 @@ use axum::Router;
 async fn main() {
     init_logger();
 
-    log::error!("server is staring up");
-    log::warn!("server is staring up");
-    log::debug!("server is staring up");
-    log::info!("server is staring up");
-    log::trace!("server is staring up");
+    log::info!("server is staring up ...");
 
-    let app_state = Arc::new(state::new());
+    let app_state = Arc::new(state::new().await);
 
     let app: Router = Router::new()
         .nest("/book", handler::book::router())
@@ -30,7 +26,10 @@ async fn main() {
 
 fn init_logger() {
     std::env::set_var("RUST_LOG", "debug");
+    std::env::set_var("RUST_BACKTRACE", "full");
 
-    // env_logger::init();
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_test_writer()
+        .init();
 }

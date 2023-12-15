@@ -16,8 +16,8 @@ where
 {
     pub fn new() -> Self {
         Data {
-            code: 1,
-            message: String::from("error"),
+            code: 0,
+            message: String::from(""),
             data: None,
         }
     }
