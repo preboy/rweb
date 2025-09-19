@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use redis::AsyncCommands;
+
 use serde::{Deserialize, Serialize};
 use serde_json;
 
@@ -42,7 +43,11 @@ pub struct AddOneReq {
 }
 
 async fn get_all(State(app_state): State<Arc<AppState>>) -> &'static str {
-    let conn = &mut app_state.redis_client.get_async_connection().await.unwrap();
+    let mut conn = app_state
+        .redis_client
+        .get_multiplexed_async_connection()
+        .await
+        .unwrap();
     let v: HashMap<String, String> = conn.hgetall(keys::users()).await.unwrap();
 
     println!("zzz = {:?}", v);
@@ -54,7 +59,11 @@ async fn get_one(
     State(app_state): State<Arc<AppState>>,
     args: Query<GetOneReq>,
 ) -> impl IntoResponse {
-    let conn = &mut app_state.redis_client.get_async_connection().await.unwrap();
+    let conn = &mut app_state
+        .redis_client
+        .get_multiplexed_async_connection()
+        .await
+        .unwrap();
 
     let key = keys::users();
     let fld = keys::user(args.uid);
@@ -68,7 +77,11 @@ async fn get_one(
 }
 
 async fn add(State(app_state): State<Arc<AppState>>, args: Query<AddOneReq>) -> impl IntoResponse {
-    let conn = &mut app_state.redis_client.get_async_connection().await.unwrap();
+    let conn = &mut app_state
+        .redis_client
+        .get_multiplexed_async_connection()
+        .await
+        .unwrap();
 
     let uid = 101_i32;
 
@@ -98,7 +111,11 @@ async fn add(State(app_state): State<Arc<AppState>>, args: Query<AddOneReq>) -> 
 }
 
 async fn del(State(app_state): State<Arc<AppState>>) -> impl IntoResponse {
-    let conn = &mut app_state.redis_client.get_async_connection().await.unwrap();
+    let conn = &mut app_state
+        .redis_client
+        .get_multiplexed_async_connection()
+        .await
+        .unwrap();
     let r: i32 = conn.hdel(keys::users(), 1).await.unwrap();
 
     let data = util::Data::<i32>::new();

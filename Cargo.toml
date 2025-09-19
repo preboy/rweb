@@ -6,18 +6,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = { version = "0.7.2" }
-derive_more = "0.99"
-env_logger = "0.10"
+axum = { version = "0.8" }
+derive_more = { version = "2.0", features = ["full"] }
+env_logger = "0.11"
 log = "0.4"
-redis = { version = "0.24", features = ["tokio-comp", "json"] }
+redis = { version = "0.32", features = ["tokio-comp","json", "aio"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
-tokio = { version = "1.35", features = ["full"] }
-tower = { version = "0.4", features = ["full"] }
+tokio = { version = "1.47", features = ["full"] }
+tower = { version = "0.5", features = ["full"] }
 tracing-subscriber = "0.3"
 tracing = "0.1.40"
-sqlx = { version = "0.7", features = [
+sqlx = { version = "0.8", features = [
     "runtime-tokio",
     "tls-native-tls",
     "mysql",
