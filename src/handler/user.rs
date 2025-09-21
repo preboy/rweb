@@ -42,7 +42,7 @@ pub struct AddOneReq {
     age: i32,
 }
 
-async fn get_all(State(app_state): State<Arc<AppState>>) -> &'static str {
+async fn get_all(State(app_state): State<Arc<AppState>>) -> impl IntoResponse {
     let mut conn = app_state
         .redis_client
         .get_multiplexed_async_connection()
@@ -52,7 +52,10 @@ async fn get_all(State(app_state): State<Arc<AppState>>) -> &'static str {
 
     println!("zzz = {:?}", v);
 
-    "get_all"
+
+   // let data = util::Data::<User>::new();
+
+    Json(v)
 }
 
 async fn get_one(

@@ -25,8 +25,10 @@ async fn main() {
 }
 
 fn init_logger() {
-    std::env::set_var("RUST_LOG", "debug");
-    std::env::set_var("RUST_BACKTRACE", "full");
+    unsafe {
+        std::env::set_var("RUST_LOG", "debug");
+        std::env::set_var("RUST_BACKTRACE", "full");
+    }
 
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
