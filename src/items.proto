@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package snazzy.items;
+
+// A snazzy new shirt!
+message Shirt {
+    // Label sizes
+    enum Size {
+        SMALL = 0;
+        MEDIUM = 1;
+        LARGE = 2;
+    }
+
+    
+    // this is a comment
+    message Student {
+    string name = 1;
+    bool male = 2;
+    repeated int32 scores = 3;
+    }
+
+
+    message MapRequest {
+    map<string, int32> points = 1;
+    }
+    // The base color
+    string color = 1;
+    // The size as stated on the label
+    Size size = 2;
+}
