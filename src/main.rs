@@ -10,7 +10,9 @@ use axum::Router;
 use bytes::{Bytes, BytesMut, Buf, BufMut};
 
 
-include!(concat!(env!("OUT_DIR"), "/snazzy.items.rs"));
+// include!(concat!(env!("OUT_DIR"), "/snazzy.items.rs"));
+include!("snazzy.items.rs");
+
 
 #[tokio::main]
 async fn main() {
